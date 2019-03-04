@@ -1,5 +1,5 @@
 # Route53HealthCheck
-This is the repository for automating Route53 Health Checks with private resources
+This is the repository for automating Route53 Health Checks with resources in a private VPC.
 
 INTRODUCTION
 

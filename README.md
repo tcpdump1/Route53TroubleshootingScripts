@@ -2,12 +2,14 @@
 This is the repository for automating Route53 Health Checks with private resources
 
 INTRODUCTION
+
 Problem: Currently, it is not possible to use Route53 to monitor the health status of a private resource (a resource without a public IP address) using TCP and HTTP/HTTPS. This is because the health checkers are public and cannot reach private resources in a VPC. 
 
-I built a Cloudformation template consisting of Python functions that can perform TCP, HTTP and HTTPS health checks for private resources in a VPC, over VPN or a DX connection.  The term "private resource" refers to any resource in a VPC that is not accessible over the internet or a resource in a datacenter. This article explains the process involved. Using this solution, the user only needs to enter the required parameters and Cloudformation does the magic !
+Solution: I built a Cloudformation template consisting of Python functions that can perform TCP, HTTP and HTTPS health checks for private resources in a VPC, over VPN or a DX connection.  The term "private resource" refers to any resource in a VPC that is not accessible over the internet or a resource in a datacenter. This article explains the process involved. Using this solution, the user only needs to enter the required parameters and Cloudformation does the magic !
 
 
 OVERVIEW
+
 This solution consists of the following services:
 
 1) AWS LAMBDA: Using a Python function, depending on the parameters passed in the Cloudformtation template, Lambda performs the TCP/HTTP/HTTPS health check and pushes the metric and logs to Cloudwatch.

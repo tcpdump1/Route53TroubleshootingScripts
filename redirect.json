@@ -1,0 +1,256 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "HTTP/HTTPS Redirection",
+
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "SECTION 1: PLEASE ENTER THE URL FOR REDIRECTION"
+          },
+          "Parameters": [
+            "Route53DNSrecord",
+            "ZoneID",
+            "URL",
+            "Protocol"
+          ]},
+
+{"Label": {
+            "default": "SECTION 2: PLEASE ENTER THE URL FOR REDIRECTION (OPTIONAL)"
+          },
+          "Parameters": [
+            "Route53DNSrecord2",
+            "ZoneID2",
+            "URL2",
+            "Protocol2"
+          ]
+
+
+        }
+      ],
+      "ParameterLabels": {
+        "Route53DNSrecord": {
+          "default": "Record Name"
+        },
+        "ZoneID": {
+          "default": "Hosted Zone ID"
+        },
+        "URL": {
+          "default": "New URL Location"
+        },
+        "Protocol": {
+          "default": "Redirect Protocol"
+        },
+
+        "Route53DNSrecord2": {
+          "default": "Record Name"
+        },
+        "ZoneID2": {
+          "default": "Hosted Zone ID"
+        },
+        "URL2": {
+          "default": "New URL Location"
+        },
+        "Protocol2": {
+          "default": "Redirect Protocol"
+        }
+      }
+    }
+  },
+
+ "Parameters" : {
+  "Route53DNSrecord" : {
+    "Type" : "String",
+    "Description" : "Enter the DNS record."
+  },
+
+"ZoneID" : {
+    "Type" : "String",
+    "Description" : "Enter the Hosted Zone ID."
+  },
+
+  "URL" : {
+    "Type" : "String",
+    "Description" : "Enter the location (URL) to redirect to."
+  },
+
+"Protocol": {
+      "Description": "Enter the protocol (HTTP/HTTPS) to redirect to.",
+      "Type": "String",
+      "Default": "http",
+      "AllowedValues": [
+        "http",
+        "https"
+      ]
+
+    },
+
+    "Route53DNSrecord2" : {
+    "Type" : "String",
+    "Description" : "Enter the DNS record."
+  },
+
+"ZoneID2" : {
+    "Type" : "String",
+    "Description" : "Enter the Hosted Zone ID."
+  },
+
+  "URL2" : {
+    "Type" : "String",
+    "Description" : "Enter the location (URL) to redirect to."
+  },
+
+"Protocol2": {
+      "Description": "Enter the protocol (HTTP/HTTPS) to redirect to.",
+      "Type": "String",
+      "Default": "http",
+      "AllowedValues": [
+        "http",
+        "https"
+      ]
+
+    }
+
+
+},
+
+"Mappings" : {
+
+    "RegionMapEndpoint" : {
+      "us-west-2" : { "AMI" : "s3-website-us-west-2.amazonaws.com" }, 
+      "us-east-1" : { "AMI" : "s3-website-us-east-1.amazonaws.com" }, 
+      "us-west-1" : { "AMI" : "s3-website-us-west-1.amazonaws.com" }, 
+      "eu-west-1" : { "AMI" : "s3-website-eu-west-1.amazonaws.com" },
+      "ap-southeast-1" : { "AMI" : "s3-website-ap-southeast-1.amazonaws.com" },
+      "ap-southeast-2" : { "AMI" : "s3-website-ap-southeast-2.amazonaws.com" },
+      "ca-central-1" : { "AMI" : "s3-website.ca-central-1.amazonaws.com" },
+      "ap-northeast-1"  : { "AMI" : "s3-website-ap-northeast-1.amazonaws.com" },
+      "eu-west-2" : { "AMI" : "s3-website.eu-west-2.amazonaws.com" },
+      "ap-northeast-2" : { "AMI" : "s3-website.ap-northeast-2.amazonaws.com" },
+      "sa-east-1"  : { "AMI" : "s3-website-sa-east-1.amazonaws.com" },
+      "eu-central-1" : { "AMI" : "s3-website.eu-central-1.amazonaws.com"},
+      "us-east-2" : { "AMI" : "s3-website.us-east-2.amazonaws.com" },
+      "ap-south-1" : { "AMI" : "s3-website.ap-south-1.amazonaws.com" },
+      "eu-west-3" : { "AMI" : "s3-website.eu-west-3.amazonaws.com" }
+    },
+
+
+    "RegionMapZone" : {
+      "us-west-2" : { "ZoneCache" : "Z3BJ6K6RIION7M"} , 
+      "us-east-1" : { "ZoneCache" : "Z3AQBSTGFYJSTF"}, 
+      "us-west-1" : { "ZoneCache" : "Z2F56UZL2M1ACD"}, 
+      "eu-west-1" : { "ZoneCache" : "Z1BKCTXD74EZPE"},
+      "ap-southeast-1" : { "ZoneCache" : "Z3O0J2DXBE1FTB"},
+      "ap-southeast-2" : { "ZoneCache" : "Z1WCIGYICN2BYD"},
+      "ca-central-1" : { "ZoneCache" : "Z1QDHH18159H29" },
+      "ap-northeast-1"  : { "ZoneCache" : "Z2M4EHUR26P7ZW"},
+      "eu-west-2" : { "ZoneCache" : "Z3GKZC51ZF0DB4" },
+      "ap-northeast-2" : { "ZoneCache" : "Z3W03O7B5YMIYP"},
+      "sa-east-1"  : { "ZoneCache" : "Z7KQH4QJS55SO" },
+      "eu-central-1" : { "ZoneCache" : "Z21DNDUVLTQW6Q"},
+      "us-east-2" : { "ZoneCache" : "Z2O1EMRO9K5GLX" },
+      "ap-south-1" : { "ZoneCache" : "Z11RGJOFQNVJUP" },
+      "eu-west-3" : { "ZoneCache" : "Z3R1K369G5AVDG" }
+    }
+
+
+
+
+    },
+  
+  "Conditions": {
+    "UseS3Bucket": {"Fn::Not": [{"Fn::Equals" : [{"Ref" : "Route53DNSrecord2"}, ""]}]}
+    },
+
+  "Resources": {
+
+   "S3BucketCreation": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName" : { "Ref" : "Route53DNSrecord" },
+        "WebsiteConfiguration" : {
+  "RedirectAllRequestsTo" : {
+  "HostName" : { "Ref" : "URL" },
+  "Protocol" : {"Ref" : "Protocol"}
+}
+} 
+      }
+},
+
+
+
+"Route53" : {
+  "Type" : "AWS::Route53::RecordSetGroup",
+  "Properties" : 
+  {
+    "HostedZoneId" : { "Ref" : "ZoneID" },
+
+    
+"RecordSets" : [
+            {
+              "Name" : { "Ref" : "Route53DNSrecord" },
+              "Type" : "A",
+              "AliasTarget" : {
+                  "HostedZoneId" : { "Fn::FindInMap" : [ "RegionMapZone", { "Ref" : "AWS::Region" }, "ZoneCache"]},
+                  "DNSName" : { "Fn::FindInMap" : [ "RegionMapEndpoint", { "Ref" : "AWS::Region" }, "AMI"]}
+              }
+            }
+          ]
+  }
+},
+
+
+
+
+"S3BucketCreation2": {
+      "Condition": "UseS3Bucket",
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName" : { "Ref" : "Route53DNSrecord2" },
+        "WebsiteConfiguration" : {
+  "RedirectAllRequestsTo" : {
+  "HostName" : { "Ref" : "URL2" },
+  "Protocol" : {"Ref" : "Protocol2"}
+}
+} 
+      }
+},
+
+
+
+"Route532" : {
+  "Condition": "UseS3Bucket",
+  "Type" : "AWS::Route53::RecordSetGroup",
+  "Properties" : 
+  {
+    "HostedZoneId" : { "Ref" : "ZoneID2" },
+
+    
+"RecordSets" : [
+            {
+              "Name" : { "Ref" : "Route53DNSrecord2" },
+              "Type" : "A",
+              "AliasTarget" : {
+                  "HostedZoneId" : { "Fn::FindInMap" : [ "RegionMapZone", { "Ref" : "AWS::Region" }, "ZoneCache"]},
+                  "DNSName" : { "Fn::FindInMap" : [ "RegionMapEndpoint", { "Ref" : "AWS::Region" }, "AMI"]}
+              }
+            }
+          ]
+  }
+}
+
+
+
+
+
+
+
+    }
+    
+  
+}
+
+
+

@@ -23,11 +23,11 @@ Cloudwatch also receives the logs from the Lambda function. The logs provide mor
 
 HOW DOES THIS WORK ?
 
-    Based on the parameters selected by the customer, Cloudformation creates a Lambda function and IAM Role for the Lambda function.
-    Cloudwatch Events invokes the Lambda function every minute.
-    The Lambda function checks the resource using a python loop and sends the metric to Cloudwatch.
-    The Lambda function sends logs to Cloudwatch to report on health check failures or successes. The customer can see the reason for the health check failures on Cloudwatch Logs.
-    Cloudwatch creates an alarm to monitor the health check status of the resource for breaching data points.
-    Route53 uses this alarm to determine if the endpoint is healthy.
-    Cloudwatch creates a namespace called "Route53PrivateHealthCheck" to store the metrics for the health check. This does not change.
-    Cloudwatch creates a Log Group and metric using the "name of the Cloudformation stack". For example, if the name of the stack is "acme" and the health check protocol is "HTTP". The Cloudwatch metric name is "HTTP: acme" and the log group name is "/aws/lambda/acme" .
+1) Based on the parameters selected by the customer, Cloudformation creates a Lambda function and IAM Role for the Lambda function.
+2) Cloudwatch Events invokes the Lambda function every minute.
+3) The Lambda function checks the resource using a python loop and sends the metric to Cloudwatch.
+4) The Lambda function sends logs to Cloudwatch to report on health check failures or successes. The customer can see the reason for the health check failures on Cloudwatch Logs.
+5) Cloudwatch creates an alarm to monitor the health check status of the resource for breaching data points.
+6) Route53 uses this alarm to determine if the endpoint is healthy.
+7) Cloudwatch creates a namespace called "Route53PrivateHealthCheck" to store the metrics for the health check. This does not change.
+8) Cloudwatch creates a Log Group and metric using the "name of the Cloudformation stack". For example, if the name of the stack is "acme" and the health check protocol is "HTTP". The Cloudwatch metric name is "HTTP: acme" and the log group name is "/aws/lambda/acme" .

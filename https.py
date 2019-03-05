@@ -1,21 +1,24 @@
 import json
 import boto3
-import socket
-#import urllib2
 import time
 from botocore.vendored import requests
 import logging
+
+
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
+
 def lambda_handler(event, context):
     cloudwatch = boto3.client('cloudwatch')
     lambdah = boto3.client('lambda')
     protocol = "HTTPS"
-    healthcheckname = "HTTPS"
-    domainname = "cnn.com"
-    url = "https://cnn.com:443/"
+    healthcheckname = "x" #Replace with desired health check name.
+    domainname = "x.x.x.x" #Replace with IP address or URL of private resource.
+    url = "https://x.x.x.x:443/" #Replace with IP address or URL of private resource plus the port number and protocol
+    
+    
     x = 1
-    while x <=5:
+    while x <=5: #For loops checks VPC resource 30 times every 2 seconds with a HTTP GET request
         try:
             r = requests.get(url, timeout=3)
             if r.status_code >= 200 and r.status_code <= 399:

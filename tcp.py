@@ -12,12 +12,12 @@ def lambda_handler(event, context): #AWS Lambda invokes your Lambda function via
     cloudwatch = boto3.client('cloudwatch')
     lambdah = boto3.client('lambda')
     protocol = "TCP"
-    healthcheckname = "x" #Replace tcpdump with desired health check name.
+    healthcheckname = "x" #Replace with desired health check name.
     host = "x.x.x.x" #Replace with IP address or URL of private resource.
     port = "80" #Replace with desired port number for TCP.
 
 
-    for i in range(30): #For loops checks VPC resource 30 times every 2 seconds
+    for i in range(30): #For loops checks VPC resource 30 times every 2 seconds with a TCP connection (Three way handshake)
         try: #Use try except block to catch errors and exceptions in the sockets library.
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).settimeout(4) #TCP connection fails after 4 seconds timeout
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))

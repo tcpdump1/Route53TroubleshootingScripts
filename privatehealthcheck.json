@@ -500,7 +500,7 @@
                                 "        except requests.exceptions.TooManyRedirects as e:",
                                 "            metric = 0",
                                 "            response = cloudwatch.put_metric_data(Namespace = 'Route53PrivateHealthCheck', MetricData = [{'MetricName': 'HTTPS: ' + healthcheckname,'Unit': 'None','Value': metric},])",
-                                "            logger.error(\"Error: \" + str(e))",.
+                                "            logger.error(\"Error: \" + str(e))",
                                 "        x += 1",
                                 "        time.sleep(2)"
                             ]

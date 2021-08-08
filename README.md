@@ -1,47 +1,67 @@
-# Route53HealthCheck
-This is the repository for automating Route53 Health Checks with resources in a private VPC.
+# Route53TroubleshootingScripts
 
-INTRODUCTION:
-
-Problem: Currently, it is not possible to use Route53 to monitor the health status of a private resource (a resource without a public IP address) using TCP and HTTP/HTTPS. This is because the health checkers are public and cannot reach private resources in a VPC. 
-
-Solution: I built a Cloudformation template (file in repository called privatehealthcheck.json) consisting of Python functions that can perform TCP, HTTP and HTTPS health checks for private resources in a VPC, over VPN or a DX connection.  The term "private resource" refers to any resource in a VPC that is not accessible over the internet or a resource in a datacenter. This article explains the process involved. Using this solution, the user only needs to lauch the Cloudformation template and the rest is history :)
-
+I created some python scripts that can easily get the required data for troubleshooting when having DNS issues with Route53. Since most Linux hosts have python interpreters already installed in them, its easy to run them. I will explain how to use them shortly:
 
 PYTHON LIBRARIES/MODULES USED:
-1) Boto3
-2) Socket
-3) Time
-4) Requests
-5) Logging
+1) Collections
+2) Subprocess
+3) Regular Expressions (re)
+4) Sys
+5) Time
 
-OVERVIEW
+GEOLOCATION/LATENCY BASED ROUTING TROUBLESHOOTING: The python script used to troubleshoot geolocation/latency related cases is called edns_tshoot.py. It is very easy to use. Save the file in a linux host, then run this on the command line interface of the Linux host: "python edns_tshoot.py" (without quotations). The script will display the output containing the details needed to troubleshoot and also save the output in a file called edns_tshoot.txt. 
+#####################
 
-The template allows the customer to add the following: 
+Your Public IP address is: 34.240.231.139
 
-1) Protocol: Select the health check protocol for the private resource. Can be TCP, HTTP or HTTPS.
-2) IP address or Domain Name: The IP address or the domain name of the private resource that is monitored.
-3) Port: The port number of the resource.
-4) Path: This is optional. For example, in "www.example.com/index.html" the path is "index.html".
-5) Health Checker Subnet: This is the subnet where the Lambda function is launched. Please note, the private subnet must have internet access and it must be able to reach the resource that is monitored, without this, the health check will not work as expected.
-6) VPC: Please select the VPC where the resource resides. If the resource is on-premise, select the VPC that connects via VPN or Direct Connect.onsible for creating all the resources. After the stack launches, the user will be able to see the health check on the Route53 console.
+Your Public DNS Resolver IP address is: 54.154.201.186
+
+Your Public DNS Resolver does not support EDNS0 Client Subnet Extension.
+
+The Local Time and Date is: Mon Dec 17 08:23:01 2018
+
+#####################
+
+The output above shows you the Public IP address of the host, the DNS Resolver Public IP address for the host, DNS Resolver support for ECS and the local time when this test was performed. To locate the text file containing the output, check the current working directory.
+
+SLOW DNS RESPONSE: Having slow responses when accessing websites ? This latency can be as a result of multiple factors such as the customers local DNS server, web server response time, loadbalancers, etc. However, some users conclude that the high response time is because of slow DNS responses which is not the case most times.
+
+The script used to troubleshoot this is called dns_query_time.py . The script performs a DNS lookup against four authoritative nameservers that Route53 provides for that domain name, displays this output and saves it in this file dns_query_time.txt . For example, if the apex domain name is "example.com", run the script this way "python dns_query_time.py example.com" (without quotations). This script must be used with the customer's APEX DOMAIN and not any other record in the zone. The output below can help prove that Route53 nameservers are responding to DNS requests within a short time.
+
+#######################
+
+ns-247.awsdns-30.com takes 17 msec to resolve example.com domain
+
+ns-837.awsdns-40.net takes 1 msec to resolve example.com domain
+
+ns-1407.awsdns-47.org takes 10 msec to resolve example.com domain
+
+ns-1906.awsdns-46.co.uk takes 11 msec to resolve example.com domain
+
+#######################
 
 
 
-HOW DOES THIS WORK ?
+WEIGHTED ROUTING POLICY TROUBLESHOOTING: Customers using Route53 complain about uneven distribution of DNS requests. The weighted routing policy does a good job in distributing DNS requests. A very important point to note is you need to consider the impact of TTL on a DNS record when using Route53 weighted routing policy. Once the customer's resolver caches the response. The TTL of the record must first expire before the local DNS resolver attempts to request for the record again.
 
-CLOUDFORMATION ==> CLOUDWATCH EVENT ==> LAMBDA (PYTHON) ===> CLOUDWATCH METRIC/ALARM ===> ROUTE53 HEALTH CHECK
-1) Based on the parameters selected by the user, Cloudformation creates a Lambda function that contains python code.
-2) Cloudwatch Events invokes the Lambda function every minute and Lambda pushes a metric to Cloudwatch.
-3) Cloudwatch metric determines whether the resource is healthy or unhealthy based on the metric pushed by Lambda.
-4) Cloudwatch also receives the logs from the Lambda function. The logs provide more information about the health check status and the reasons for health check failures/success.
-5) Cloudwatch creates a health check alarm for monitoring based on the metric status that is used by Route53 to determine the health status of a private resource in a VPC.
-6) Route53 uses this alarm to determine if the endpoint is healthy.
-7) Cloudwatch creates a namespace called "Route53PrivateHealthCheck" to store the metrics for the health check. This does not change.
-8) Cloudwatch creates a Log Group and metric using the "name of the Cloudformation stack". For example, if the name of the stack is "example" and the health check protocol is "HTTP". The Cloudwatch metric name is "HTTP: example" and the log group name is "/aws/lambda/example" .
+The best way to test a weighted record is to query the authoritative nameservers directly and by-pass the local DNS resolvers which cache the response. To do this, use the script weighted.py . For example, if the weighted record is i.love.weight.route53.example.com . Run the script this way: "python weighted.py i.love.weight.example.com" (without quotations). The output looks like this:
 
+#######################
 
-LIMITATIONS
+Weighted routing policy test going on 30 times. Please wait for the final result.
 
-Failover can take within 60 - 75 seconds. This is primarily because Cloudwatch alarm is triggered after considering the minimum sample count for a one minute period. To reduce the effect of this, the python function sends 30 samples within a one minute period. The higher the number of samples, the better.
-At the moment, Cloudwatch supports high resolution custom metrics to enable real time monitoring of alarm (less than one minute period) but this alarm type is not supported when creating a health check in Route53. 
+Weighted routing policy test going on 30 times. Please wait for the final result.
+
+Weighted routing policy test going on 30 times. Please wait for the final result.
+
+Weighted routing policy test going on 30 times. Please wait for the final result.
+
+FINAL RESULTS
+
+This test was done using ns-1906.awsdns-46.co.uk authoritative nameserver.
+
+The DNS record i.love.weight.example.com resolved to ['34.254.237.39', '34.255.24.0'] 6 times with 60.0% ratio.
+
+The DNS record i.love.weight.example.com resolved to ['54.229.28.115'] 4 times with 40.0% ratio.
+
+#######################

@@ -1,0 +1,4 @@
+TIMEOUT=2
+RESULT_LIST = []
+DNS_QUERY_TIME_REGEX = r"\d{1,10}\smsec"
+WEIGHTED_REGEX = r"(A.+r)\s(\S+)"

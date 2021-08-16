@@ -17,9 +17,11 @@ def _grep_output(query_nameservers) -> str:
     return output
 
 
-def main():    
+def main():
+    args = Parser.args
+    Route53 = Route53Base(args.domain)
+    
     for nameservers in Route53Base.retrieve_auth_nameservers(args.domain):
-
         try:
             grep_query_output = _grep_output(Route53.run_dns_query(nameservers))
 
@@ -38,8 +40,7 @@ def main():
     return("\n".join(RESULT_LIST))
 
 if __name__ == "__main__":
-    args = Parser.args
-    Route53 = Route53Base(args.domain)
+
     print(main())
 
 

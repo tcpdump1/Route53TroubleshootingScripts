@@ -9,25 +9,28 @@ from helpers.constants import (
 )
 from subprocess import check_output
 from re import search
-import collections
-import time
+from collections import Counter
+from time import sleep
 
+
+
+def _write_output(Route53, text):
+    create_file = Route53.write_query_to_file('weighted.txt')
+    return create_file.write(text)
 
 def _collection_of_resolution(domain_name, write, Route53):
     
     retrieve_auth_name_server_ip = search(WEIGHTED_REGEX, Route53Base.run_check_output(['dig', domain_name, '+trace', '+short']))
     retrieve_auth_name_server = Route53Base.run_check_output(['dig','-x', retrieve_auth_name_server_ip.group(2), '+short'])
-    
-    RESULT_LIST.append(f'This test was carried out 10 times\nThis test was done using {retrieve_auth_name_server} authoritative nameserver.\n')
+    RESULT_LIST.append(f'This test was carried out ten times.\nThis test was done using {retrieve_auth_name_server} authoritative nameserver.\n')
     
     if write:
-        create_file = Route53.write_query_to_file('weighted.txt')
-        create_file.write(f'This test was carried out 10 times\nThis test was done using {retrieve_auth_name_server} authoritative nameserver.\n')
+        _write_output(Route53, f'This test was carried out ten times.\nThis test was done using {retrieve_auth_name_server} authoritative nameserver.\n')
         
     for i in range(10):
         a_record = Route53Base.run_check_output(['dig', domain_name, f'@{retrieve_auth_name_server_ip.group(2)}', '+short']).splitlines()
         LIST_OF_DNS_RESOLUTION.append(tuple(sorted(a_record)))
-        time.sleep(2)
+        sleep(2)
         
     return LIST_OF_DNS_RESOLUTION
 
@@ -39,17 +42,16 @@ def _calculate_dns_ratio(dict_of_resolution, domain_name, write, Route53):
         RESULT_LIST.append(f'The DNS record {domain_name} resolved to {list(dns_resolution)} {count_of_resolution} times with {percent} ratio.')
         
         if write:
-            create_file = Route53.write_query_to_file('weighted.txt')
-            create_file.write(f'\nThe DNS record {domain_name} resolved {list(dns_resolution)} {count_of_resolution} times with {percent} ratio.')
+            _write_output(Route53, f'\nThe DNS record {domain_name} resolved {list(dns_resolution)} {count_of_resolution} times with {percent} ratio.')
     
-    create_file.write(f'\n')
+    _write_output(Route53, f'\n')
     return("\n".join(RESULT_LIST))
 
 
 def main():
     args = Parser.args
     Route53 = Route53Base(args.domain)
-    dict_of_resolution = collections.Counter(_collection_of_resolution(args.domain, args.write, Route53))
+    dict_of_resolution = Counter(_collection_of_resolution(args.domain, args.write, Route53))
     
     return _calculate_dns_ratio(
         dict_of_resolution,

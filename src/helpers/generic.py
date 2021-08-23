@@ -17,23 +17,18 @@ class Route53Base():
 
 
     @staticmethod
-    def retrieve_auth_nameservers(domain_name) -> List: 
+    def run_check_output(command : List) -> str: 
         '''
-        Retrieves the authoritative nameservers for a
-        domain name
+        Runs a CLI command
 
-        Args: Takes a domain name eg. ogbonosoup.com
+        Args: Takes a command eg. [ls -al]
 
-        Returns: A List of authoritative nameservers,
-        eg. [ns-1.awsdns-30.com, ns-2.awsdns-30.com,
-        ns-3.awsdns-30.com, ns-4.awsdns-30.com]
-        ]
+        Returns: the output of the command in string format
         '''
-        auth_nameservers = check_output(["dig", domain_name, "NS", "+short"]).splitlines()
-        auth_nameservers = [f'@{i.decode("utf-8")}' for i in auth_nameservers]
-    
-        return auth_nameservers
-    
+        
+        command_output = check_output(command).strip().decode("utf-8")
+        return command_output
+
 
     def run_dns_query(self, nameserver : str):
         query_nameservers = Popen(

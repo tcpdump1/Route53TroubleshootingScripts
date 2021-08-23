@@ -1,46 +1,44 @@
+from helpers.generic import (
+    Parser,
+    Route53Base
+)
+from helpers.constants import (
+    LIST_OF_DNS_RESOLUTION,
+    RESULT_LIST,
+    WEIGHTED_REGEX
+)
+from subprocess import check_output
+from re import search
 import collections
-import subprocess
-import re
-import sys
 import time
 
-####This sections retrieves the nameserver to perform the test
-create_file = subprocess.check_output(["touch", "weighted.txt"]) #creates a file to store logs
-festac = subprocess.check_output(("dig", sys.argv[1], "+trace", "+short"))
-ojodu = re.search(r"(A.+r)\s(\S+)", festac)
+RESULT_LIST.append(f'This test was carried out 10 times')
 
-farum = subprocess.check_output(("dig","-x", ojodu.group(2), "+short")).strip()
-benin = "@" + ojodu.group(2)
+def _collection_of_resolution(domain_name):
+    retrieve_auth_name_server_ip = search(WEIGHTED_REGEX, Route53Base.run_check_output(['dig', domain_name, '+trace', '+short']))
+    retrieve_auth_name_server = Route53Base.run_check_output(['dig','-x', retrieve_auth_name_server_ip.group(2), '+short'])
+    RESULT_LIST.append(f'This test was done using {retrieve_auth_name_server} authoritative nameserver.\n') 
+    
+    for i in range(10):
+        a_record = Route53Base.run_check_output(['dig', domain_name, f'@{retrieve_auth_name_server_ip.group(2)}', '+short']).splitlines()
+        LIST_OF_DNS_RESOLUTION.append(tuple(sorted(a_record)))
+        time.sleep(2)
+        
+    return LIST_OF_DNS_RESOLUTION
 
-droppy = []
+def main():
+    args = Parser.args
+    dict_of_resolution=collections.Counter(_collection_of_resolution(args.domain))
 
-####This sections queries the authoritative nameservers
-for i in range(30):
-    auchi = subprocess.check_output(("dig", sys.argv[1], benin, "+short")).strip().splitlines()
-    droppy.append(tuple(sorted(auchi)))
-    time.sleep(2)
-    print "Weighted routing policy test going on thirty times. Please wait for the final result."
+    for dns_resolution, count_of_resolution in dict_of_resolution.items():
+        percent = f'{round(((float(count_of_resolution)/10) * 100),2)}%'
+        RESULT_LIST.append(f'The DNS record {args.domain} resolved to {list(dns_resolution)} {count_of_resolution} times with {percent} ratio.')
+        
+        if args.write:
+            create_file = Route53.write_query_to_file('weighted.txt')
+            create_file.write(f'\nThe DNS record {args.domain} resolved {list(dns_resolution)} {count_of_resolution} times with {percent} ratio.')
 
+    return("\n".join(RESULT_LIST))
 
-####This sections counts the output of the result and presents it to the user.
-delta=collections.Counter(droppy) #counts the number of items in the tuple list and create a dictionary based on that. Dict = {items:no of items}
-print "\n"
-output = open('weighted.txt', 'a+')
-output.write("\nFINAL RESULTS")
-output.write("\n=============")
-print "FINAL RESULTS"
-print "============="
-print "This test was done using " + farum[:-1] + " authoritative nameserver."
-
-output.write("\nThis test was done using " + farum[:-1] + " authoritative nameserver.\n")
-
-for k,v in delta.items():
-    blame = ((float(v)/30) * 100)
-    cele = round(blame,2)
-    percent = str(cele) + "%"
-    output.write("\nThe DNS record %s resolved to %s %s times with %s ratio." % (sys.argv[1], list(k), str(v), percent))
-    print "The DNS record %s resolved to %s %s times with %s ratio." % (sys.argv[1], list(k), str(v), percent)
-output.write("\n")
-output.close()
-
-print "\nYOU CAN ALSO VIEW THE RESULTS IN \"weighted.txt\" FILE."
+if __name__ == '__main__':
+    print(main())

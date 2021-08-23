@@ -20,11 +20,11 @@ def _grep_output(query_nameservers) -> str:
 def main():
     args = Parser.args
     Route53 = Route53Base(args.domain)
+    auth_nameservers = [f'@{i}' for i in Route53Base.run_check_output(["dig", args.domain, "NS", "+short"]).splitlines()]
     
-    for nameservers in Route53Base.retrieve_auth_nameservers(args.domain):
+    for nameservers in auth_nameservers:
         try:
             grep_query_output = _grep_output(Route53.run_dns_query(nameservers))
-
         except:
             return('We had problems with the query.')
 
@@ -40,7 +40,4 @@ def main():
     return("\n".join(RESULT_LIST))
 
 if __name__ == "__main__":
-
     print(main())
-
-

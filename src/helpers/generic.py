@@ -9,9 +9,7 @@ from typing import List
 
 
 class Route53Base():
-
-    TIMEOUT=2
-
+    
     def __init__(self, domain_name):
         self.domain_name = domain_name
 

@@ -36,7 +36,7 @@ class Route53Base():
         
         return query_nameservers
     
-    def write_query_to_file(self, name_of_file : str):
+    def write_query_to_file(self, name_of_file : str, text):
         '''
         Args: Takes a text file eg. dns_query.txt
 
@@ -44,7 +44,7 @@ class Route53Base():
         Step 2: Open File
         '''
         create_file = check_output(["touch", name_of_file])
-        output = open(name_of_file, 'a+')
+        output = open(name_of_file, 'a+').write(text)
         
         return output
 

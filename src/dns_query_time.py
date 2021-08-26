@@ -1,5 +1,9 @@
+from typing import List
+from subprocess import check_output
+from re import search
 from helpers.generic import (
-    Parser,
+    args,
+    Route53,
     Route53Base
 )
 from helpers.constants import(
@@ -7,19 +11,16 @@ from helpers.constants import(
     RESULT_LIST,
     TIMEOUT
 )
-from typing import List
-from subprocess import check_output
-from re import search
 
 
 def _grep_output(query_nameservers) -> str:
+    
     output=(check_output(('grep', 'Query'), stdin=query_nameservers.stdout, timeout=TIMEOUT).strip())
     return output
 
 
 def main():
-    args = Parser.args
-    Route53 = Route53Base(args.domain)
+    
     auth_nameservers = [f'@{i}' for i in Route53Base.run_check_output(["dig", args.domain, "NS", "+short"]).splitlines()]
     
     for nameservers in auth_nameservers:

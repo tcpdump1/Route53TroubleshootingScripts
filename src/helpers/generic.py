@@ -7,10 +7,9 @@ from subprocess import (
 from typing import List
 
 
-
 class Route53Base():
     
-    def __init__(self, domain_name):
+    def __init__(self, domain_name=None):
         self.domain_name = domain_name
 
 
@@ -36,6 +35,7 @@ class Route53Base():
         
         return query_nameservers
     
+    
     def write_query_to_file(self, name_of_file : str, text):
         '''
         Args: Takes a text file eg. dns_query.txt
@@ -52,21 +52,24 @@ class Route53Base():
 class Parser():
 
     parser = ArgumentParser(
-        description="Set Options for DNS queries",
+        description="Set Options for using DNS scripts",
         )
 
     parser.add_argument(
         "domain",
         type=str,
-        help="Write to test file"
+        help="Domain name eg. google.com"
     )
 
     parser.add_argument(
         "--write",
         action="store_true",
-        help="Write to test file",
+        help="Option to write script to text file",
         required=False,
         default=None
     )
 
-    args = parser.parse_args()
+    argument = parser.parse_args()
+
+args = Parser.argument
+Route53 = Route53Base(args.domain)
